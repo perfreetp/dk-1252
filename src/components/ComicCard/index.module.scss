@@ -1,0 +1,134 @@
+@use '@/styles/variables.scss' as *;
+
+.card {
+  display: flex;
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-md;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+  
+  &:active {
+    opacity: 0.9;
+  }
+}
+
+.cover {
+  width: 160rpx;
+  height: 220rpx;
+  border-radius: $radius-md;
+  flex-shrink: 0;
+}
+
+.content {
+  flex: 1;
+  margin-left: $spacing-md;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.title {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  flex: 1;
+  @include text-ellipsis;
+}
+
+.newBadge {
+  background: $color-error;
+  padding: 4rpx 12rpx;
+  border-radius: $radius-xs;
+  margin-left: $spacing-xs;
+}
+
+.newText {
+  font-size: $font-size-xs;
+  color: $color-text-white;
+  font-weight: $font-weight-bold;
+}
+
+.author {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin-top: $spacing-xs;
+}
+
+.platform {
+  margin-top: $spacing-xs;
+}
+
+.platformText {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.progress {
+  margin-top: $spacing-xs;
+}
+
+.progressText {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+  margin-top: $spacing-sm;
+}
+
+.statusTag,
+.paymentTag,
+.updateTag {
+  padding: 6rpx 16rpx;
+  border-radius: $radius-xs;
+}
+
+.tagText {
+  font-size: $font-size-xs;
+  color: $color-text-white;
+  font-weight: $font-weight-medium;
+}
+
+.updateTag {
+  background: $color-bg-hover;
+}
+
+.updateText {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+.footer {
+  margin-top: $spacing-sm;
+}
+
+.priorityButton {
+  @include button-reset;
+  display: inline-flex;
+  align-items: center;
+  background: $color-bg-hover;
+  padding: 6rpx 16rpx;
+  border-radius: $radius-button;
+}
+
+.priorityDot {
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: $radius-round;
+  margin-right: $spacing-xs;
+}
+
+.priorityText {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}

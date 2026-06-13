@@ -1,0 +1,165 @@
+@use '@/styles/variables.scss' as *;
+
+.container {
+  min-height: 100vh;
+  background: $color-bg-gradient;
+  padding: $page-padding;
+}
+
+.header {
+  margin-bottom: $spacing-lg;
+}
+
+.title {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-xs;
+}
+
+.subtitle {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.searchBar {
+  display: flex;
+  align-items: center;
+  background: $color-bg-card;
+  border-radius: $radius-button;
+  padding: $spacing-sm $spacing-md;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+}
+
+.searchInput {
+  flex: 1;
+  height: 64rpx;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+}
+
+.searchIcon {
+  font-size: 32rpx;
+  margin-right: $spacing-sm;
+  color: $color-text-tertiary;
+}
+
+.filterBar {
+  display: flex;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-lg;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.filterBtn {
+  @include button-reset;
+  height: $button-height-sm;
+  padding: 0 $spacing-md;
+  background: $color-bg-card;
+  border-radius: $radius-button;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  white-space: nowrap;
+  box-shadow: $shadow-card;
+
+  &.active {
+    background: $color-primary;
+    color: $color-text-white;
+  }
+
+  &:active {
+    opacity: 0.9;
+  }
+}
+
+.statsBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-lg;
+  background: $color-bg-card;
+  padding: $spacing-md;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-card;
+}
+
+.statItem {
+  text-align: center;
+  flex: 1;
+}
+
+.statValue {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $color-primary;
+}
+
+.statLabel {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  margin-top: $spacing-xs;
+}
+
+.statDivider {
+  width: 1rpx;
+  height: 60rpx;
+  background: $color-border;
+}
+
+.comicList {
+  margin-bottom: 120rpx;
+}
+
+.addBtn {
+  position: fixed;
+  right: $page-padding;
+  bottom: calc(120rpx + env(safe-area-inset-bottom));
+  @include button-reset;
+  width: 96rpx;
+  height: 96rpx;
+  background: $color-primary;
+  border-radius: $radius-round;
+  box-shadow: $shadow-float;
+  @include flex-center;
+  z-index: 100;
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.addIcon {
+  font-size: 48rpx;
+  color: $color-text-white;
+  font-weight: bold;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-xl * 2;
+}
+
+.emptyIcon {
+  font-size: 120rpx;
+  margin-bottom: $spacing-lg;
+}
+
+.emptyText {
+  font-size: $font-size-lg;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-sm;
+}
+
+.emptySubtext {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}

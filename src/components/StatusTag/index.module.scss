@@ -1,0 +1,13 @@
+@use '@/styles/variables.scss' as *;
+
+.tag {
+  padding: 6rpx 16rpx;
+  border-radius: $radius-xs;
+  display: inline-block;
+}
+
+.text {
+  font-size: $font-size-xs;
+  color: $color-text-white;
+  font-weight: $font-weight-medium;
+}

@@ -1,0 +1,47 @@
+// ============================================
+// 主题配色变量（漫画追更小程序主题）
+// ============================================
+
+// 品牌主题色：樱花粉，贴合漫画/二次元主题
+$color-primary: #FF6B9D;
+$color-primary-light: #FF8FB1;
+$color-primary-dark: #E85A8A;
+
+// 功能色
+$color-success: #00B894;
+$color-warning: #FFB84C;
+$color-error: #E17055;
+$color-info: #74B9FF;
+
+// 状态色（漫画更新状态）
+$color-status-active: #00B894;  // 连载中
+$color-status-hiatus: #FDCB6E;  // 休刊
+$color-status-finished: #74B9FF; // 完结
+$color-status-discontinued: #E17055; // 断更
+
+// 背景色
+$color-bg-page: #FFF5F8;
+$color-bg-card: #FFFFFF;
+$color-bg-hover: #FFF0F5;
+$color-bg-gradient: linear-gradient(180deg, #FFF0F5 0%, #FFF5F8 100%);
+
+// 文本色
+$color-text-primary: #2D3436;
+$color-text-secondary: #636E72;
+$color-text-tertiary: #B2BEC3;
+$color-text-disabled: #C9CDD4;
+$color-text-white: #FFFFFF;
+
+// 边框色
+$color-border: #FFE4EC;
+$color-divider: #FFF0F5;
+
+// 优先级色
+$color-priority-high: #FF6B9D;
+$color-priority-medium: #FFB84C;
+$color-priority-low: #B2BEC3;
+
+// 付费状态色
+$color-paid: #00B894;
+$color-free: #74B9FF;
+$color-pay-per-chapter: #FDCB6E;
