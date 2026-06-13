@@ -6,15 +6,17 @@ import { Comic } from '../../types/comic';
 import styles from './index.module.scss';
 
 const ProgressPage: React.FC = () => {
-  const { comics, markAllChaptersRead, isLoading } = useComicContext();
+  const { comics, markAllChaptersRead, isLoading, comics: allComics } = useComicContext();
   const [filterPlatform, setFilterPlatform] = useState<string>('all');
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    if (!isLoading) {
+    if (!isLoading && allComics.length > 0) {
+      setIsReady(true);
     }
-  }, [isLoading]);
+  }, [isLoading, allComics]);
 
-  const platforms = ['all', ...new Set(comics.map(c => c.platform))];
+  const platforms = ['all', ...new Set(allComics.map(c => c.platform))];
   const platformLabels = {
     all: '全部',
     '腾讯动漫': '🀄 腾讯',
@@ -28,8 +30,8 @@ const ProgressPage: React.FC = () => {
   };
 
   const filteredComics = filterPlatform === 'all' 
-    ? comics 
-    : comics.filter(c => c.platform === filterPlatform);
+    ? allComics 
+    : allComics.filter(c => c.platform === filterPlatform);
 
   const groupedComics = new Map<string, Comic[]>();
   filteredComics.forEach(comic => {
@@ -48,7 +50,7 @@ const ProgressPage: React.FC = () => {
     Taro.showToast({ title: '已标记全部已读', icon: 'success' });
   };
 
-  if (isLoading) {
+  if (!isReady) {
     return (
       <View className={styles.container}>
         <View className={styles.header}>
@@ -56,7 +58,7 @@ const ProgressPage: React.FC = () => {
           <Text className={styles.subtitle}>加载中...</Text>
         </View>
         <View style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', paddingTop: '200rpx' }}>
-          <Text>加载中...</Text>
+          <Text style={{ fontSize: '28rpx', color: '#636E72' }}>正在加载数据...</Text>
         </View>
       </View>
     );

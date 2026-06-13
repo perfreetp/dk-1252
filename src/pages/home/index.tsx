@@ -14,16 +14,19 @@ const HomePage: React.FC = () => {
     addComic, 
     updateComic, 
     statistics,
-    isLoading
+    isLoading,
+    comics
   } = useComicContext();
   
   const [showAddModal, setShowAddModal] = useState(false);
   const [searchValue, setSearchValue] = useState('');
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    if (!isLoading && filteredComics.length === 0 && !searchValue && !filterOptions.priority) {
+    if (!isLoading && comics.length > 0) {
+      setIsReady(true);
     }
-  }, [isLoading]);
+  }, [isLoading, comics]);
 
   const handleSearch = (value: string) => {
     setSearchValue(value);
@@ -57,7 +60,7 @@ const HomePage: React.FC = () => {
     { key: 'low', label: '低优先级' }
   ];
 
-  if (isLoading) {
+  if (!isReady) {
     return (
       <View className={styles.container}>
         <View className={styles.header}>
@@ -65,7 +68,7 @@ const HomePage: React.FC = () => {
           <Text className={styles.subtitle}>加载中...</Text>
         </View>
         <View style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', paddingTop: '200rpx' }}>
-          <Text>加载中...</Text>
+          <Text style={{ fontSize: '28rpx', color: '#636E72' }}>正在加载数据...</Text>
         </View>
       </View>
     );

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Button, Picker } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { useComicContext } from '../../store/ComicContext';
@@ -6,15 +6,17 @@ import { generateComicShareText } from '../../utils/helpers';
 import styles from './index.module.scss';
 
 const MinePage: React.FC = () => {
-  const { comics, statistics, remindSettings, setRemindSettings, isLoading } = useComicContext();
+  const { comics, statistics, remindSettings, setRemindSettings, isLoading, comics: allComics } = useComicContext();
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    if (!isLoading) {
+    if (!isLoading && allComics.length >= 0) {
+      setIsReady(true);
     }
-  }, [isLoading]);
+  }, [isLoading, allComics]);
 
   const handleShare = () => {
-    const shareText = generateComicShareText(comics);
+    const shareText = generateComicShareText(allComics);
     Taro.setClipboardData({
       data: shareText,
       success: () => {
@@ -38,7 +40,7 @@ const MinePage: React.FC = () => {
     });
   };
 
-  if (isLoading) {
+  if (!isReady) {
     return (
       <View className={styles.container}>
         <View className={styles.header}>
@@ -46,7 +48,7 @@ const MinePage: React.FC = () => {
           <Text className={styles.subtitle}>加载中...</Text>
         </View>
         <View style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', paddingTop: '200rpx' }}>
-          <Text>加载中...</Text>
+          <Text style={{ fontSize: '28rpx', color: '#636E72' }}>正在加载数据...</Text>
         </View>
       </View>
     );

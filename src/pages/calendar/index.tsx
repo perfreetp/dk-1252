@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Image, Button, ScrollView } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { useComicContext } from '../../store/ComicContext';
@@ -6,15 +6,28 @@ import { Comic } from '../../types/comic';
 import styles from './index.module.scss';
 
 const CalendarPage: React.FC = () => {
-  const { comics, statistics, isLoading, getUnreadComics, refreshComics } = useComicContext();
+  const { 
+    comics, 
+    statistics, 
+    isLoading, 
+    getUnreadComics,
+    comics: allComics
+  } = useComicContext();
+  
   const today = new Date().getDay();
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    if (!isLoading) {
+    if (!isLoading && allComics.length > 0) {
+      setIsReady(true);
     }
-  }, [isLoading]);
+  }, [isLoading, allComics]);
 
-  const todayUnreadComics = getUnreadComics();
+  const todayUnreadComics = allComics.filter(c => 
+    c.updateDay === today && 
+    c.status === 'active' && 
+    c.hasNewChapter
+  );
 
   const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
 
@@ -25,14 +38,14 @@ const CalendarPage: React.FC = () => {
   };
 
   const getDayUnreadComics = (day: number) => {
-    return comics.filter(c => 
+    return allComics.filter(c => 
       c.updateDay === day && 
       c.status === 'active' && 
       c.hasNewChapter
     );
   };
 
-  if (isLoading) {
+  if (!isReady) {
     return (
       <View className={styles.container}>
         <View className={styles.header}>
@@ -40,7 +53,7 @@ const CalendarPage: React.FC = () => {
           <Text className={styles.subtitle}>加载中...</Text>
         </View>
         <View style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', paddingTop: '200rpx' }}>
-          <Text>加载中...</Text>
+          <Text style={{ fontSize: '28rpx', color: '#636E72' }}>正在加载数据...</Text>
         </View>
       </View>
     );
