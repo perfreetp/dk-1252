@@ -1,6 +1,9 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { Comic, FilterOptions, Statistics, RemindSettings, Note } from '../types/comic';
 import { mockComics } from '../data/mockComics';
+import Taro from '@tarojs/taro';
+
+const STORAGE_KEY = 'comic_tracker_data';
 
 interface ComicContextType {
   comics: Comic[];
@@ -8,6 +11,7 @@ interface ComicContextType {
   filterOptions: FilterOptions;
   statistics: Statistics;
   remindSettings: RemindSettings;
+  isLoading: boolean;
   setFilterOptions: (options: FilterOptions) => void;
   addComic: (comic: Omit<Comic, 'id' | 'createdAt' | 'lastReadAt'>) => void;
   updateComic: (id: string, updates: Partial<Comic>) => void;
@@ -20,6 +24,7 @@ interface ComicContextType {
   setRemindSettings: (settings: RemindSettings) => void;
   getComicsByDay: (day: number) => Comic[];
   getComicsByPlatform: () => Map<string, Comic[]>;
+  getUnreadComics: () => Comic[];
   refreshComics: () => void;
 }
 
@@ -34,13 +39,61 @@ export const useComicContext = () => {
 };
 
 export const ComicProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [comics, setComics] = useState<Comic[]>(mockComics);
+  const [comics, setComics] = useState<Comic[]>([]);
   const [filterOptions, setFilterOptions] = useState<FilterOptions>({});
-  const [remindSettings, setRemindSettings] = useState<RemindSettings>({
+  const [remindSettings, setRemindSettingsState] = useState<RemindSettings>({
     enabled: true,
     platforms: [],
     beforeChapters: 1
   });
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = () => {
+    try {
+      setIsLoading(true);
+      const stored = Taro.getStorageSync(STORAGE_KEY);
+      
+      if (stored) {
+        const data = JSON.parse(stored);
+        setComics(data.comics || mockComics);
+        setRemindSettingsState(data.remindSettings || {
+          enabled: true,
+          platforms: [],
+          beforeChapters: 1
+        });
+      } else {
+        setComics(mockComics);
+      }
+    } catch (error) {
+      console.error('[ComicContext] Load error:', error);
+      setComics(mockComics);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const saveData = useCallback(() => {
+    try {
+      const data = {
+        comics,
+        remindSettings,
+        lastUpdate: new Date().toISOString()
+      };
+      Taro.setStorageSync(STORAGE_KEY, JSON.stringify(data));
+    } catch (error) {
+      console.error('[ComicContext] Save error:', error);
+    }
+  }, [comics, remindSettings]);
+
+  useEffect(() => {
+    if (!isLoading) {
+      saveData();
+    }
+  }, [comics, remindSettings, isLoading, saveData]);
 
   const filteredComics = comics.filter(comic => {
     if (filterOptions.status && comic.status !== filterOptions.status) return false;
@@ -78,36 +131,44 @@ export const ComicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       createdAt: new Date().toISOString(),
       lastReadAt: new Date().toISOString()
     };
-    setComics([newComic, ...comics]);
+    setComics(prev => [newComic, ...prev]);
   };
 
   const updateComic = (id: string, updates: Partial<Comic>) => {
-    setComics(comics.map(comic =>
+    setComics(prev => prev.map(comic =>
       comic.id === id ? { ...comic, ...updates } : comic
     ));
   };
 
   const deleteComic = (id: string) => {
-    setComics(comics.filter(comic => comic.id !== id));
+    setComics(prev => prev.filter(comic => comic.id !== id));
   };
 
   const markChapterRead = (comicId: string, chapterNumber: number) => {
-    setComics(comics.map(comic => {
+    setComics(prev => prev.map(comic => {
       if (comic.id !== comicId) return comic;
+      
+      const newCurrentChapter = Math.max(comic.currentChapter, chapterNumber);
+      const hasNewChapter = comic.latestChapter > newCurrentChapter;
+      
       return {
         ...comic,
-        currentChapter: Math.max(comic.currentChapter, chapterNumber),
+        currentChapter: newCurrentChapter,
         lastReadAt: new Date().toISOString(),
+        hasNewChapter,
         chapters: comic.chapters.map(ch =>
-          ch.number === chapterNumber ? { ...ch, isRead: true, readAt: new Date().toISOString() } : ch
+          ch.number === chapterNumber 
+            ? { ...ch, isRead: true, readAt: new Date().toISOString() } 
+            : ch
         )
       };
     }));
   };
 
   const markAllChaptersRead = (comicId: string) => {
-    setComics(comics.map(comic => {
+    setComics(prev => prev.map(comic => {
       if (comic.id !== comicId) return comic;
+      
       return {
         ...comic,
         currentChapter: comic.latestChapter,
@@ -123,7 +184,7 @@ export const ComicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const addNote = (comicId: string, note: Omit<Note, 'id' | 'createdAt'>) => {
-    setComics(comics.map(comic => {
+    setComics(prev => prev.map(comic => {
       if (comic.id !== comicId) return comic;
       return {
         ...comic,
@@ -140,7 +201,7 @@ export const ComicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const deleteNote = (comicId: string, noteId: string) => {
-    setComics(comics.map(comic => {
+    setComics(prev => prev.map(comic => {
       if (comic.id !== comicId) return comic;
       return {
         ...comic,
@@ -150,13 +211,17 @@ export const ComicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const toggleHidden = (comicId: string) => {
-    setComics(comics.map(comic =>
+    setComics(prev => prev.map(comic =>
       comic.id === comicId ? { ...comic, isHidden: !comic.isHidden } : comic
     ));
   };
 
+  const setRemindSettings = (settings: RemindSettings) => {
+    setRemindSettingsState(settings);
+  };
+
   const getComicsByDay = (day: number) => {
-    return comics.filter(comic => comic.updateDay === day && comic.status === 'active');
+    return comics.filter(comic => comic.updateDay === day && comic.status === 'active' && comic.hasNewChapter);
   };
 
   const getComicsByPlatform = () => {
@@ -168,8 +233,17 @@ export const ComicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return platformMap;
   };
 
+  const getUnreadComics = () => {
+    const today = new Date().getDay();
+    return comics.filter(comic => 
+      comic.status === 'active' && 
+      comic.updateDay === today && 
+      comic.hasNewChapter
+    );
+  };
+
   const refreshComics = () => {
-    setComics([...comics]);
+    loadData();
   };
 
   return (
@@ -179,6 +253,7 @@ export const ComicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       filterOptions,
       statistics,
       remindSettings,
+      isLoading,
       setFilterOptions,
       addComic,
       updateComic,
@@ -191,6 +266,7 @@ export const ComicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setRemindSettings,
       getComicsByDay,
       getComicsByPlatform,
+      getUnreadComics,
       refreshComics
     }}>
       {children}

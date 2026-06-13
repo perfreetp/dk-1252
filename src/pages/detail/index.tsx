@@ -8,25 +8,28 @@ import { getStatusLabel, getStatusColor, getWeekDayLabel } from '../../utils/hel
 import styles from './index.module.scss';
 
 const DetailPage: React.FC = () => {
-  const { comics, markChapterRead, markAllChaptersRead, addNote, deleteNote, updateComic } = useComicContext();
+  const { comics, markChapterRead, markAllChaptersRead, addNote, deleteNote, updateComic, isLoading } = useComicContext();
   const [comic, setComic] = useState<Comic | null>(null);
   const [activeTab, setActiveTab] = useState<'chapters' | 'notes'>('chapters');
   const [showAddNote, setShowAddNote] = useState(false);
   const [noteContent, setNoteContent] = useState('');
   const [noteType, setNoteType] = useState<'plot' | 'character' | 'general'>('general');
+  const [spoilerVisibility, setSpoilerVisibility] = useState<{ [key: string]: boolean }>({});
 
   useEffect(() => {
-    const pages = Taro.getCurrentPages();
-    const currentPage = pages[pages.length - 1];
-    const id = (currentPage as any).options?.id;
-    
-    if (id) {
-      const found = comics.find(c => c.id === id);
-      if (found) {
-        setComic(found);
+    if (!isLoading) {
+      const pages = Taro.getCurrentPages();
+      const currentPage = pages[pages.length - 1];
+      const id = (currentPage as any).options?.id;
+      
+      if (id) {
+        const found = comics.find(c => c.id === id);
+        if (found) {
+          setComic(found);
+        }
       }
     }
-  }, [comics]);
+  }, [isLoading, comics]);
 
   const handleMarkAllRead = () => {
     if (comic) {
@@ -72,11 +75,29 @@ const DetailPage: React.FC = () => {
     }
   };
 
+  const toggleSpoiler = (chapterId: string) => {
+    setSpoilerVisibility(prev => ({
+      ...prev,
+      [chapterId]: !prev[chapterId]
+    }));
+  };
+
+  if (isLoading) {
+    return (
+      <View className={styles.container}>
+        <View style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', paddingTop: '200rpx' }}>
+          <Text>加载中...</Text>
+        </View>
+      </View>
+    );
+  }
+
   if (!comic) {
     return (
       <View className={styles.container}>
         <View className={styles.section}>
-          <Text>加载中...</Text>
+          <Text>未找到该作品</Text>
+          <Button onClick={() => Taro.navigateBack()}>返回</Button>
         </View>
       </View>
     );
@@ -84,6 +105,7 @@ const DetailPage: React.FC = () => {
 
   const progressPercent = Math.round((comic.currentChapter / comic.latestChapter) * 100);
   const unreadChapters = comic.chapters.filter(ch => !ch.isRead);
+  const spoilerChapters = comic.chapters.filter(ch => ch.hasSpoiler);
 
   return (
     <View className={styles.container}>
@@ -180,14 +202,50 @@ const DetailPage: React.FC = () => {
                   <Text style={{ fontSize: '24rpx', color: '#FF6B9D', marginBottom: '16rpx', display: 'block' }}>
                     未读章节 ({unreadChapters.length})
                   </Text>
-                  {unreadChapters.slice(0, 10).map(chapter => (
-                    <ChapterItem
-                      key={chapter.id}
-                      chapter={chapter}
-                      onMarkRead={() => handleMarkRead(chapter.number)}
-                      showSpoiler={!comic.isHidden}
-                    />
-                  ))}
+                  {unreadChapters.slice(0, 10).map(chapter => {
+                    const showSpoiler = !comic.isHidden && chapter.hasSpoiler;
+                    const isVisible = spoilerVisibility[chapter.id];
+                    
+                    return (
+                      <View key={chapter.id}>
+                        {showSpoiler && !isVisible ? (
+                          <View 
+                            style={{
+                              background: '#FFF3E0',
+                              borderRadius: '12rpx',
+                              padding: '24rpx',
+                              marginBottom: '16rpx',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between'
+                            }}
+                          >
+                            <View>
+                              <Text style={{ fontSize: '28rpx', fontWeight: '600', color: '#2D3436' }}>
+                                {chapter.title}
+                              </Text>
+                              <Text style={{ fontSize: '24rpx', color: '#E17055', marginTop: '8rpx', display: 'block' }}>
+                                ⚠️ 包含剧透内容
+                              </Text>
+                            </View>
+                            <Button 
+                              size='mini'
+                              style={{ background: '#E17055', color: '#fff' }}
+                              onClick={() => toggleSpoiler(chapter.id)}
+                            >
+                              点击查看
+                            </Button>
+                          </View>
+                        ) : (
+                          <ChapterItem
+                            chapter={chapter}
+                            onMarkRead={() => handleMarkRead(chapter.number)}
+                            showSpoiler={!comic.isHidden && isVisible}
+                          />
+                        )}
+                      </View>
+                    );
+                  })}
                 </View>
               )}
               <View style={{ marginTop: unreadChapters.length > 0 ? '32rpx' : '0' }}>

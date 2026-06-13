@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, Button, Picker } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { useComicContext } from '../../store/ComicContext';
@@ -6,7 +6,12 @@ import { generateComicShareText } from '../../utils/helpers';
 import styles from './index.module.scss';
 
 const MinePage: React.FC = () => {
-  const { comics, statistics, remindSettings, setRemindSettings } = useComicContext();
+  const { comics, statistics, remindSettings, setRemindSettings, isLoading } = useComicContext();
+
+  useEffect(() => {
+    if (!isLoading) {
+    }
+  }, [isLoading]);
 
   const handleShare = () => {
     const shareText = generateComicShareText(comics);
@@ -32,6 +37,20 @@ const MinePage: React.FC = () => {
       icon: 'success'
     });
   };
+
+  if (isLoading) {
+    return (
+      <View className={styles.container}>
+        <View className={styles.header}>
+          <Text className={styles.title}>我的追更</Text>
+          <Text className={styles.subtitle}>加载中...</Text>
+        </View>
+        <View style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', paddingTop: '200rpx' }}>
+          <Text>加载中...</Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View className={styles.container}>

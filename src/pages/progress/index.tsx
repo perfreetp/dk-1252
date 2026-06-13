@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Image, Button, ScrollView } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { useComicContext } from '../../store/ComicContext';
@@ -6,8 +6,13 @@ import { Comic } from '../../types/comic';
 import styles from './index.module.scss';
 
 const ProgressPage: React.FC = () => {
-  const { comics, markAllChaptersRead } = useComicContext();
+  const { comics, markAllChaptersRead, isLoading } = useComicContext();
   const [filterPlatform, setFilterPlatform] = useState<string>('all');
+
+  useEffect(() => {
+    if (!isLoading) {
+    }
+  }, [isLoading]);
 
   const platforms = ['all', ...new Set(comics.map(c => c.platform))];
   const platformLabels = {
@@ -42,6 +47,20 @@ const ProgressPage: React.FC = () => {
     markAllChaptersRead(comic.id);
     Taro.showToast({ title: '已标记全部已读', icon: 'success' });
   };
+
+  if (isLoading) {
+    return (
+      <View className={styles.container}>
+        <View className={styles.header}>
+          <Text className={styles.title}>阅读进度</Text>
+          <Text className={styles.subtitle}>加载中...</Text>
+        </View>
+        <View style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', paddingTop: '200rpx' }}>
+          <Text>加载中...</Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View className={styles.container}>

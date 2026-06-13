@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, Image, Button, ScrollView } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { useComicContext } from '../../store/ComicContext';
@@ -6,12 +6,15 @@ import { Comic } from '../../types/comic';
 import styles from './index.module.scss';
 
 const CalendarPage: React.FC = () => {
-  const { comics, statistics } = useComicContext();
+  const { comics, statistics, isLoading, getUnreadComics, refreshComics } = useComicContext();
   const today = new Date().getDay();
 
-  const todayComics = comics.filter(
-    c => c.updateDay === today && c.status === 'active'
-  );
+  useEffect(() => {
+    if (!isLoading) {
+    }
+  }, [isLoading]);
+
+  const todayUnreadComics = getUnreadComics();
 
   const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
 
@@ -21,9 +24,27 @@ const CalendarPage: React.FC = () => {
     });
   };
 
-  const getDayComics = (day: number) => {
-    return comics.filter(c => c.updateDay === day && c.status === 'active');
+  const getDayUnreadComics = (day: number) => {
+    return comics.filter(c => 
+      c.updateDay === day && 
+      c.status === 'active' && 
+      c.hasNewChapter
+    );
   };
+
+  if (isLoading) {
+    return (
+      <View className={styles.container}>
+        <View className={styles.header}>
+          <Text className={styles.title}>更新日历</Text>
+          <Text className={styles.subtitle}>加载中...</Text>
+        </View>
+        <View style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', paddingTop: '200rpx' }}>
+          <Text>加载中...</Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View className={styles.container}>
@@ -35,12 +56,12 @@ const CalendarPage: React.FC = () => {
       <View className={styles.calendarCard}>
         <View className={styles.todaySection}>
           <Text className={styles.sectionTitle}>
-            今日更新
+            今日待读
             <Text className={styles.todayBadge}>今天</Text>
           </Text>
-          {todayComics.length > 0 ? (
+          {todayUnreadComics.length > 0 ? (
             <View className={styles.todayComics}>
-              {todayComics.map(comic => (
+              {todayUnreadComics.map(comic => (
                 <View 
                   key={comic.id} 
                   className={styles.comicItem}
@@ -57,15 +78,16 @@ const CalendarPage: React.FC = () => {
                       {comic.platform} · 第{comic.latestChapter}话
                     </Text>
                   </View>
-                  {comic.hasNewChapter && (
-                    <Text className={styles.newTag}>NEW</Text>
-                  )}
+                  <Text className={styles.newTag}>NEW</Text>
                 </View>
               ))}
             </View>
           ) : (
             <View className={styles.noComics}>
-              <Text>今天没有漫画更新哦～</Text>
+              <Text>今天没有未读更新哦～</Text>
+              <Text style={{ fontSize: '24rpx', color: '#B2BEC3', marginTop: '8rpx', display: 'block' }}>
+                已读完所有今日更新
+              </Text>
             </View>
           )}
         </View>
@@ -81,35 +103,40 @@ const CalendarPage: React.FC = () => {
         <ScrollView scrollX>
           <View style={{ display: 'flex', gap: '16rpx', padding: '0 16rpx' }}>
             {weekDays.map((day, index) => {
-              const dayComics = getDayComics(index);
+              const dayUnreadComics = getDayUnreadComics(index);
+              const isToday = index === today;
+              
               return (
                 <View 
                   key={index}
                   style={{
                     width: '220rpx',
-                    background: index === today ? '#FFF5F8' : '#fff',
+                    background: isToday ? '#FFF5F8' : '#fff',
                     borderRadius: '16rpx',
                     padding: '24rpx',
-                    minHeight: '300rpx'
+                    minHeight: '300rpx',
+                    border: isToday ? '2rpx solid #FF6B9D' : 'none'
                   }}
                 >
                   <Text style={{
                     fontSize: '28rpx',
-                    fontWeight: index === today ? 'bold' : '600',
-                    color: index === today ? '#FF6B9D' : '#2D3436',
+                    fontWeight: isToday ? 'bold' : '600',
+                    color: isToday ? '#FF6B9D' : '#2D3436',
                     marginBottom: '16rpx',
                     display: 'block',
                     textAlign: 'center'
                   }}>
                     {day}
+                    {isToday && ' ⭐'}
                   </Text>
-                  {dayComics.length > 0 ? (
-                    dayComics.map(comic => (
+                  
+                  {dayUnreadComics.length > 0 ? (
+                    dayUnreadComics.map(comic => (
                       <View 
                         key={comic.id}
                         onClick={() => handleComicClick(comic)}
                         style={{
-                          background: '#f0f0f0',
+                          background: isToday ? '#FFE4EC' : '#f0f0f0',
                           borderRadius: '8rpx',
                           padding: '12rpx',
                           marginBottom: '8rpx',
@@ -125,6 +152,14 @@ const CalendarPage: React.FC = () => {
                           whiteSpace: 'nowrap'
                         }}>
                           {comic.title}
+                        </Text>
+                        <Text style={{
+                          fontSize: '20rpx',
+                          color: '#636E72',
+                          marginTop: '4rpx',
+                          display: 'block'
+                        }}>
+                          第{comic.latestChapter}话
                         </Text>
                         {comic.hasNewChapter && (
                           <View style={{
@@ -147,7 +182,7 @@ const CalendarPage: React.FC = () => {
                       marginTop: '40rpx',
                       display: 'block'
                     }}>
-                      休息日
+                      {isToday ? '已读完' : '无更新'}
                     </Text>
                   )}
                 </View>

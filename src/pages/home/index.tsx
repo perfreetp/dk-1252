@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Input, ScrollView, Button } from '@tarojs/components';
 import { useComicContext } from '../../store/ComicContext';
 import ComicCard from '../../components/ComicCard';
@@ -13,11 +13,17 @@ const HomePage: React.FC = () => {
     setFilterOptions, 
     addComic, 
     updateComic, 
-    statistics 
+    statistics,
+    isLoading
   } = useComicContext();
   
   const [showAddModal, setShowAddModal] = useState(false);
   const [searchValue, setSearchValue] = useState('');
+
+  useEffect(() => {
+    if (!isLoading && filteredComics.length === 0 && !searchValue && !filterOptions.priority) {
+    }
+  }, [isLoading]);
 
   const handleSearch = (value: string) => {
     setSearchValue(value);
@@ -50,6 +56,20 @@ const HomePage: React.FC = () => {
     { key: 'medium', label: '中优先级' },
     { key: 'low', label: '低优先级' }
   ];
+
+  if (isLoading) {
+    return (
+      <View className={styles.container}>
+        <View className={styles.header}>
+          <Text className={styles.title}>漫画追更</Text>
+          <Text className={styles.subtitle}>加载中...</Text>
+        </View>
+        <View style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', paddingTop: '200rpx' }}>
+          <Text>加载中...</Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View className={styles.container}>
